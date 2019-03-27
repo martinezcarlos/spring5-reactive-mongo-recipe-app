@@ -34,7 +34,7 @@ public class IngredientController {
 
   @GetMapping("/recipe/{recipeId}/ingredients")
   public String listIngredients(@PathVariable final String recipeId, final Model model) {
-    IngredientController.log.debug("Getting ingredient list for recipe id: " + recipeId);
+    log.debug("Getting ingredient list for recipe id: " + recipeId);
 
     // use command object to avoid lazy load errors in Thymeleaf.
     model.addAttribute("recipe", recipeService.findCommandById(recipeId));
@@ -45,7 +45,8 @@ public class IngredientController {
   @GetMapping("recipe/{recipeId}/ingredient/{id}/show")
   public String showRecipeIngredient(@PathVariable final String recipeId,
       @PathVariable final String id, final Model model) {
-    model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id));
+    model.addAttribute("ingredient",
+        ingredientService.findByRecipeIdAndIngredientId(recipeId, id).block());
     return "recipe/ingredient/show";
   }
 
@@ -71,7 +72,8 @@ public class IngredientController {
   @GetMapping("recipe/{recipeId}/ingredient/{id}/update")
   public String updateRecipeIngredient(@PathVariable final String recipeId,
       @PathVariable final String id, final Model model) {
-    model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id));
+    model.addAttribute("ingredient",
+        ingredientService.findByRecipeIdAndIngredientId(recipeId, id).block());
 
     model.addAttribute("uomList", unitOfMeasureService.listAllUoms().collectList().block());
     return "recipe/ingredient/ingredientform";
@@ -79,9 +81,9 @@ public class IngredientController {
 
   @PostMapping("recipe/{recipeId}/ingredient")
   public String saveOrUpdate(@ModelAttribute final IngredientCommand command) {
-    final IngredientCommand savedCommand = ingredientService.saveIngredientCommand(command);
+    final IngredientCommand savedCommand = ingredientService.saveIngredientCommand(command).block();
 
-    IngredientController.log.debug("saved ingredient id:" + savedCommand.getId());
+    log.debug("saved ingredient id:" + savedCommand.getId());
 
     return "redirect:/recipe/"
         + savedCommand.getRecipeId()
@@ -94,8 +96,8 @@ public class IngredientController {
   public String deleteIngredient(@PathVariable final String recipeId,
       @PathVariable final String id) {
 
-    IngredientController.log.debug("deleting ingredient id:" + id);
-    ingredientService.deleteById(recipeId, id);
+    log.debug("deleting ingredient id:" + id);
+    ingredientService.deleteById(recipeId, id).block();
 
     return "redirect:/recipe/" + recipeId + "/ingredients";
   }
