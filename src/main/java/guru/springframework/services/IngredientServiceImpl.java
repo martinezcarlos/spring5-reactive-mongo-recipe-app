@@ -37,19 +37,15 @@ public class IngredientServiceImpl implements IngredientService {
   @Override
   public Mono<IngredientCommand> findByRecipeIdAndIngredientId(final String recipeId,
       final String ingredientId) {
-    //TODO 27/03/2019 carlosmartinez: Change the way Mono streaming and Java streaming are mixed.
-    return recipeReactiveRepository.findById(recipeId).map(
-        // Java 8 streams
-        r -> r.getIngredients()
-            .stream()
-            .filter(i -> i.getId().equalsIgnoreCase(ingredientId))
-            .findFirst()
-        // End of Java 8 streams
-    ).filter(Optional::isPresent).map(i -> {
-      final IngredientCommand ic = ingredientToIngredientCommand.convert(i.get());
-      ic.setRecipeId(recipeId);
-      return ic;
-    });
+    return recipeReactiveRepository.findById(recipeId)
+        .flatMapIterable(Recipe::getIngredients)
+        .filter(i -> i.getId().equalsIgnoreCase(ingredientId))
+        .single()
+        .map(i -> {
+          final IngredientCommand ic = ingredientToIngredientCommand.convert(i);
+          ic.setRecipeId(recipeId);
+          return ic;
+        });
   }
 
   @Override
