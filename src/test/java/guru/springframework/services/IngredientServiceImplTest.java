@@ -1,6 +1,7 @@
 package guru.springframework.services;
 
 import guru.springframework.commands.IngredientCommand;
+import guru.springframework.commands.UnitOfMeasureCommand;
 import guru.springframework.converters.IngredientCommandToIngredient;
 import guru.springframework.converters.IngredientToIngredientCommand;
 import guru.springframework.converters.UnitOfMeasureCommandToUnitOfMeasure;
@@ -91,13 +92,19 @@ public class IngredientServiceImplTest {
     final IngredientCommand command = new IngredientCommand();
     command.setId("3");
     command.setRecipeId("2");
+    final UnitOfMeasureCommand uom = new UnitOfMeasureCommand();
+    uom.setId("1");
+    command.setUom(uom);
 
     final Recipe recipe = new Recipe();
+    recipe.addIngredient(new Ingredient());
+    recipe.getIngredients().iterator().next().setId("3");
 
     final Recipe savedRecipe = new Recipe();
     savedRecipe.addIngredient(new Ingredient());
     savedRecipe.getIngredients().iterator().next().setId("3");
 
+    when(unitOfMeasureReactiveRepository.findById(anyString())).thenReturn(Mono.empty());
     when(recipeReactiveRepository.findById(anyString())).thenReturn(Mono.just(recipe));
     when(recipeReactiveRepository.save(any())).thenReturn(Mono.just(savedRecipe));
 

@@ -4,7 +4,7 @@ import guru.springframework.commands.RecipeCommand;
 import guru.springframework.converters.RecipeCommandToRecipe;
 import guru.springframework.converters.RecipeToRecipeCommand;
 import guru.springframework.domain.Recipe;
-import guru.springframework.repositories.RecipeRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
-
 
 /**
  * Created by jt on 6/21/17.
@@ -22,36 +21,37 @@ import static org.junit.Assert.assertEquals;
 @SpringBootTest
 public class RecipeServiceIT {
 
-    public static final String NEW_DESCRIPTION = "New Description";
+  private static final String NEW_DESCRIPTION = "New Description";
 
-    @Autowired
-    RecipeService recipeService;
+  @Autowired
+  RecipeService recipeService;
 
-    @Autowired
-    RecipeRepository recipeRepository;
+  @Autowired
+  RecipeReactiveRepository recipeReactiveRepository;
 
-    @Autowired
-    RecipeCommandToRecipe recipeCommandToRecipe;
+  @Autowired
+  RecipeCommandToRecipe recipeCommandToRecipe;
 
-    @Autowired
-    RecipeToRecipeCommand recipeToRecipeCommand;
+  @Autowired
+  RecipeToRecipeCommand recipeToRecipeCommand;
 
   //  @Transactional
-    @Test
-    public void testSaveOfDescription() throws Exception {
-        //given
-        Iterable<Recipe> recipes = recipeRepository.findAll();
-        Recipe testRecipe = recipes.iterator().next();
-        RecipeCommand testRecipeCommand = recipeToRecipeCommand.convert(testRecipe);
+  @Test
+  public void testSaveOfDescription() {
+    //given
+    final Iterable<Recipe> recipes = recipeReactiveRepository.findAll().toIterable();
+    final Recipe testRecipe = recipes.iterator().next();
+    final RecipeCommand testRecipeCommand = recipeToRecipeCommand.convert(testRecipe);
 
-        //when
-        testRecipeCommand.setDescription(NEW_DESCRIPTION);
-        RecipeCommand savedRecipeCommand = recipeService.saveRecipeCommand(testRecipeCommand);
+    //when
+    testRecipeCommand.setDescription(NEW_DESCRIPTION);
+    final RecipeCommand savedRecipeCommand = recipeService.saveRecipeCommand(testRecipeCommand)
+        .block();
 
-        //then
-        assertEquals(NEW_DESCRIPTION, savedRecipeCommand.getDescription());
-        assertEquals(testRecipe.getId(), savedRecipeCommand.getId());
-        assertEquals(testRecipe.getCategories().size(), savedRecipeCommand.getCategories().size());
-        assertEquals(testRecipe.getIngredients().size(), savedRecipeCommand.getIngredients().size());
-    }
+    //then
+    assertEquals(NEW_DESCRIPTION, savedRecipeCommand.getDescription());
+    assertEquals(testRecipe.getId(), savedRecipeCommand.getId());
+    assertEquals(testRecipe.getCategories().size(), savedRecipeCommand.getCategories().size());
+    assertEquals(testRecipe.getIngredients().size(), savedRecipeCommand.getIngredients().size());
+  }
 }

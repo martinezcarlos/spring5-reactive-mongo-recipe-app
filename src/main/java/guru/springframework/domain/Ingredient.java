@@ -1,11 +1,9 @@
 package guru.springframework.domain;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
 import java.math.BigDecimal;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Created by jt on 6/13/17.
@@ -14,27 +12,25 @@ import java.util.UUID;
 @Setter
 public class Ingredient {
 
-    private String id = UUID.randomUUID().toString();
-    private String description;
-    private BigDecimal amount;
+  private String id = UUID.randomUUID().toString();
+  private String description;
+  private BigDecimal amount;
+  private UnitOfMeasure uom;
 
-    @DBRef
-    private UnitOfMeasure uom;
+  public Ingredient() {
 
-    public Ingredient() {
+  }
 
-    }
+  public Ingredient(final String description, final BigDecimal amount, final UnitOfMeasure uom) {
+    this.description = description;
+    this.amount = amount;
+    this.uom = uom;
+  }
 
-    public Ingredient(String description, BigDecimal amount, UnitOfMeasure uom) {
-        this.description = description;
-        this.amount = amount;
-        this.uom = uom;
-    }
-
-    public Ingredient(String description, BigDecimal amount, UnitOfMeasure uom, Recipe recipe) {
-        this.description = description;
-        this.amount = amount;
-        this.uom = uom;
-    }
-
+  public Ingredient(final String description, final BigDecimal amount, final UnitOfMeasure uom,
+      final Recipe recipe) {
+    this.description = description;
+    this.amount = amount;
+    this.uom = uom;
+  }
 }

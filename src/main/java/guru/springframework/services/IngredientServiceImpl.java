@@ -5,9 +5,11 @@ import guru.springframework.converters.IngredientCommandToIngredient;
 import guru.springframework.converters.IngredientToIngredientCommand;
 import guru.springframework.domain.Ingredient;
 import guru.springframework.domain.Recipe;
+import guru.springframework.domain.UnitOfMeasure;
 import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -63,15 +65,18 @@ public class IngredientServiceImpl implements IngredientService {
           .filter(ingredient -> ingredient.getId().equals(command.getId()))
           .findFirst();
 
+      final UnitOfMeasure unitOfMeasure = unitOfMeasureReactiveRepository.findById(
+          command.getUom().getId()).block();
       if (ingredientOptional.isPresent()) {
         final Ingredient ingredientFound = ingredientOptional.get();
         ingredientFound.setDescription(command.getDescription());
         ingredientFound.setAmount(command.getAmount());
-        ingredientFound.setUom(
-            unitOfMeasureReactiveRepository.findById(command.getUom().getId()).block());
+        ingredientFound.setUom(unitOfMeasure);
       } else {
         //add new Ingredient
+        command.setId(UUID.randomUUID().toString());
         final Ingredient ingredient = ingredientCommandToIngredient.convert(command);
+        ingredient.setUom(unitOfMeasure);
         //  ingredient.setRecipe(recipe);
         recipe.addIngredient(ingredient);
       }
