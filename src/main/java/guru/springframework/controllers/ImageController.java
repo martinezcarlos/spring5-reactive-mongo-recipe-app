@@ -32,7 +32,7 @@ public class ImageController {
 
   @GetMapping("recipe/{id}/image")
   public String showUploadForm(@PathVariable final String id, final Model model) {
-    model.addAttribute("recipe", recipeService.findCommandById(id));
+    model.addAttribute("recipe", recipeService.findCommandById(id).block());
 
     return "recipe/imageuploadform";
   }
@@ -41,7 +41,7 @@ public class ImageController {
   public String handleImagePost(@PathVariable final String id,
       @RequestParam("imagefile") final MultipartFile file) {
 
-    imageService.saveImageFile(id, file);
+    imageService.saveImageFile(id, file).block();
 
     return "redirect:/recipe/" + id + "/show";
   }
