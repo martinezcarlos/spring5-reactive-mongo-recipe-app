@@ -1,13 +1,7 @@
 package guru.springframework.controllers;
 
-import guru.springframework.commands.RecipeCommand;
 import guru.springframework.services.ImageService;
 import guru.springframework.services.RecipeService;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +26,7 @@ public class ImageController {
 
   @GetMapping("recipe/{id}/image")
   public String showUploadForm(@PathVariable final String id, final Model model) {
-    model.addAttribute("recipe", recipeService.findCommandById(id).block());
+    model.addAttribute("recipe", recipeService.findCommandById(id));
 
     return "recipe/imageuploadform";
   }
@@ -46,22 +40,22 @@ public class ImageController {
     return "redirect:/recipe/" + id + "/show";
   }
 
-  @GetMapping("recipe/{id}/recipeimage")
-  public void renderImageFromDB(@PathVariable final String id, final HttpServletResponse response)
-      throws IOException {
-    final RecipeCommand recipeCommand = recipeService.findCommandById(id).block();
-
-    if (recipeCommand.getImage() != null) {
-      final byte[] byteArray = new byte[recipeCommand.getImage().length];
-      int i = 0;
-
-      for (final Byte wrappedByte : recipeCommand.getImage()) {
-        byteArray[i++] = wrappedByte; //auto unboxing
-      }
-
-      response.setContentType("image/jpeg");
-      final InputStream is = new ByteArrayInputStream(byteArray);
-      IOUtils.copy(is, response.getOutputStream());
-    }
-  }
+  //@GetMapping("recipe/{id}/recipeimage")
+  //public void renderImageFromDB(@PathVariable final String id, final HttpServletResponse response)
+  //    throws IOException {
+  //  final RecipeCommand recipeCommand = recipeService.findCommandById(id).block();
+  //
+  //  if (recipeCommand.getImage() != null) {
+  //    final byte[] byteArray = new byte[recipeCommand.getImage().length];
+  //    int i = 0;
+  //
+  //    for (final Byte wrappedByte : recipeCommand.getImage()) {
+  //      byteArray[i++] = wrappedByte; //auto unboxing
+  //    }
+  //
+  //    response.setContentType("image/jpeg");
+  //    final InputStream is = new ByteArrayInputStream(byteArray);
+  //    IOUtils.copy(is, response.getOutputStream());
+  //  }
+  //}
 }
