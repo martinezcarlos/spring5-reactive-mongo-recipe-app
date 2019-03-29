@@ -5,13 +5,16 @@ import guru.springframework.commands.UnitOfMeasureCommand;
 import guru.springframework.services.IngredientService;
 import guru.springframework.services.RecipeService;
 import guru.springframework.services.UnitOfMeasureService;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import reactor.core.publisher.Flux;
 
 /**
  * Created by jt on 6/28/17.
@@ -63,8 +66,6 @@ public class IngredientController {
     //init uom
     ingredientCommand.setUom(new UnitOfMeasureCommand());
 
-    model.addAttribute("uomList", unitOfMeasureService.listAllUoms());
-
     return "recipe/ingredient/ingredientform";
   }
 
@@ -72,14 +73,23 @@ public class IngredientController {
   public String updateRecipeIngredient(@PathVariable final String recipeId,
       @PathVariable final String id, final Model model) {
     model.addAttribute("ingredient",
-        ingredientService.findByRecipeIdAndIngredientId(recipeId, id).subscribe());
-
-    model.addAttribute("uomList", unitOfMeasureService.listAllUoms());
+        ingredientService.findByRecipeIdAndIngredientId(recipeId, id).block());
     return "recipe/ingredient/ingredientform";
   }
 
   @PostMapping("recipe/{recipeId}/ingredient")
-  public String saveOrUpdate(@ModelAttribute final IngredientCommand command) {
+  public String saveOrUpdate(@Valid @ModelAttribute final IngredientCommand command,
+      final BindingResult bindingResult, final Model model) {
+    if (bindingResult.hasErrors()) {
+
+      bindingResult.getAllErrors().forEach(objectError -> {
+        log.debug(objectError.toString());
+      });
+
+      model.addAttribute("ingredient", command);
+      return "/recipe/ingredient/ingredientform";
+    }
+
     final IngredientCommand savedCommand = ingredientService.saveIngredientCommand(command).block();
 
     log.debug("saved ingredient id:" + savedCommand.getId());
@@ -99,5 +109,10 @@ public class IngredientController {
     ingredientService.deleteById(recipeId, id).block();
 
     return "redirect:/recipe/" + recipeId + "/ingredients";
+  }
+
+  @ModelAttribute("uomList")
+  public Flux<UnitOfMeasureCommand> populateUomList() {
+    return unitOfMeasureService.listAllUoms();
   }
 }
